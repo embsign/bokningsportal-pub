@@ -519,13 +519,13 @@ body {
   gap: 10px;
 }
 
-.setup-inline-action-button {
+.primary-button.setup-inline-action-button {
   justify-self: end;
   width: auto;
   background: var(--success);
-  border-color: #187a52;
+  border-color: var(--success);
   color: #ffffff;
-  box-shadow: 0 10px 20px rgba(31, 157, 106, 0.24);
+  box-shadow: 0 12px 22px rgba(31, 157, 106, 0.28);
 }
 
 .form-group {
