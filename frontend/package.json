@@ -1,0 +1,13 @@
+{
+  "name": "bokningsportal-frontend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build && cp -r functions dist/",
+    "dev": "vite",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.0.3"
+  }
+}

@@ -1,0 +1,10 @@
+# Hashed bundles — long cache (filenames change on each build).
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Entry HTML — always revalidate (no hashed filename).
+/index.html
+  Cache-Control: no-cache
+
+/
+  Cache-Control: no-cache

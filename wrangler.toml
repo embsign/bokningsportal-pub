@@ -1,0 +1,10 @@
+name = "bokningsportal"
+compatibility_date = "2026-04-14"
+pages_build_output_dir = "frontend/dist"
+minify = true
+
+# Lokalt + CLI; CI skriver om binding med rätt database_id vid deploy.
+[[d1_databases]]
+binding = "DB"
+database_name = "booking-prod"
+database_id = "00000000-0000-0000-0000-000000000001"

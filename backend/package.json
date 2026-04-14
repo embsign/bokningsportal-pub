@@ -1,0 +1,19 @@
+{
+  "name": "embsign-backend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler --cwd .. pages dev frontend/dist --port 8787 --persist-to ./.wrangler/state",
+    "dev:remote": "wrangler --cwd .. pages dev frontend/dist --port 8787 --persist-to ./.wrangler/state",
+    "dev:with-frontend-build": "npm --prefix ../frontend run build && npm run dev",
+    "db:local": "wrangler d1 execute booking-prod --local --persist-to ../.wrangler/state --config ../wrangler.toml --file ../db/migrations/001_initial_schema.sql && wrangler d1 execute booking-prod --local --persist-to ../.wrangler/state --config ../wrangler.toml --file ../db/migrations/002_tenant_last_changed.sql && wrangler d1 execute booking-prod --local --persist-to ../.wrangler/state --config ../wrangler.toml --file ../db/seed.sql",
+    "db:local:reset": "rm -rf ../.wrangler/state/v3/d1 && npm run db:local"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "miniflare": "^3.20240524.1",
+    "typescript": "^5.5.4",
+    "wrangler": "^3.66.0"
+  }
+}
