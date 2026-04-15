@@ -3,6 +3,21 @@
 
 import { createElement } from "../hooks/dom.js";
 
+const padMonth = (value) => String(value).padStart(2, "0");
+
+const getRecentMonthOptions = (count = 6) => {
+  const now = new Date();
+  return Array.from({ length: count }, (_, offset) => {
+    const date = new Date(now.getFullYear(), now.getMonth() - offset, 1);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    return {
+      value: `${year}-${padMonth(month)}`,
+      label: date.toLocaleDateString("sv-SE", { month: "long", year: "numeric" }),
+    };
+  });
+};
+
 const stepHeader = (current, total) =>
   createElement("div", {
     className: "modal-step",
@@ -38,6 +53,7 @@ export const ReportModal = ({ open, step, form, bookingObjects, onClose, onNext,
     return null;
   }
 
+  const monthOptions = getRecentMonthOptions();
   const canNext =
     step === 1 ? Boolean(form.month) : step === 2 ? Boolean(form.bookingObjectId) : true;
 
@@ -50,10 +66,21 @@ export const ReportModal = ({ open, step, form, bookingObjects, onClose, onNext,
         className: "form-field form-row-inline",
         children: [
           createElement("div", { className: "form-label form-label-inline", text: "Månad" }),
-          createElement("input", {
+          createElement("select", {
             className: "input",
-            attrs: { type: "month", value: form.month || "" },
-            onInput: (event) => onChange("month", event.target.value),
+            onChange: (event) => onChange("month", event.target.value),
+            children: [
+              createElement("option", { text: "Välj månad", attrs: { value: "" } }),
+              ...monthOptions.map((option) =>
+                createElement("option", {
+                  text: option.label,
+                  attrs: {
+                    value: option.value,
+                    selected: form.month === option.value ? "selected" : null,
+                  },
+                })
+              ),
+            ],
           }),
         ],
       }),

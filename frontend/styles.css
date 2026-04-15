@@ -1552,6 +1552,11 @@ body {
   gap: 20px;
 }
 
+.selector-modal {
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
+}
+
 .create-brf-modal {
   max-height: calc(100vh - 48px);
   overflow-y: auto;

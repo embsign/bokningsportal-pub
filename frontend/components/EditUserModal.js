@@ -97,10 +97,10 @@ export const EditUserModal = ({
     }
 
     return createElement("div", {
-      className: "modal-overlay",
+      className: "modal-overlay modal-overlay-scrollable",
       children: [
         createElement("div", {
-          className: "modal card",
+          className: "modal card selector-modal",
           children: [
             createElement("div", { className: "modal-title", text: "Välj behörighetsgrupper" }),
             createElement("div", {
