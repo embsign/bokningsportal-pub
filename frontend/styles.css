@@ -672,6 +672,7 @@ body {
   gap: 10px;
   max-height: min(52vh, 420px);
   overflow: auto;
+  overscroll-behavior: contain;
   padding-right: 6px;
 }
 
@@ -1629,6 +1630,7 @@ body {
 .modal-overlay-scrollable {
   align-items: flex-start;
   overflow-y: auto;
+  z-index: 60;
 }
 
 .modal {

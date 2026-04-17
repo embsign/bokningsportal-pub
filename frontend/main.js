@@ -87,6 +87,20 @@ const buildQrImageUrl = (targetUrl, size = 320) =>
 /** Skroll i bokningsobjekt-modalen får inte skrivas till store (varje skrollevent skulle rendera om hela appen). */
 let adminBookingObjectModalScrollTop = 0;
 let setupBookingObjectModalScrollTop = 0;
+let adminBookingSelectorScrollTop = 0;
+let setupBookingSelectorScrollTop = 0;
+let adminUserSelectorScrollTop = 0;
+let setupUserSelectorScrollTop = 0;
+let isDocumentScrollLocked = false;
+const setDocumentScrollLock = (locked) => {
+  if (isDocumentScrollLocked === locked) {
+    return;
+  }
+  const overflowValue = locked ? "hidden" : "";
+  document.documentElement.style.overflow = overflowValue;
+  document.body.style.overflow = overflowValue;
+  isDocumentScrollLocked = locked;
+};
 const TURNSTILE_SCRIPT_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 const ensureTurnstileScript = (() => {
   let promise = null;
@@ -807,6 +821,25 @@ if (routePath.startsWith("/admin/")) {
 
   const renderAdmin = () => {
     const state = adminStore.getState();
+    const hasAdminModalOpen = Boolean(
+      state.modalOpen ||
+        state.selectorOpenKey ||
+        state.groupModalOpen ||
+        state.importOpen ||
+        state.adminSelectorOpen ||
+        state.userPickerOpen ||
+        state.editUserOpen ||
+        state.userSelectorOpen ||
+        state.userRfidModalOpen ||
+        state.userGroupModalOpen ||
+        state.confirmModal?.open ||
+        state.reportOpen ||
+        state.orderScreensModalOpen ||
+        state.pairScreenModalOpen ||
+        state.editScreenModalOpen ||
+        state.ownTabletModalOpen
+    );
+    setDocumentScrollLock(hasAdminModalOpen);
     const docScrollX = window.scrollX;
     const docScrollY = window.scrollY;
     const activeElement =
@@ -916,20 +949,25 @@ if (routePath.startsWith("/admin/")) {
         });
       },
       selectorOpenKey: state.selectorOpenKey,
-      selectorScrollTop: state.bookingSelectorScrollTop || 0,
-      onSelectorScroll: (value) => adminStore.setState({ bookingSelectorScrollTop: value }),
+      selectorScrollTop: adminBookingSelectorScrollTop || 0,
+      onSelectorScroll: (value) => {
+        adminBookingSelectorScrollTop = value || 0;
+      },
       onBookingModalOverlayScroll: (value) => {
         adminBookingObjectModalScrollTop = value;
       },
       onOpenSelector: (key) => {
         const scrollEl = document.querySelector(".booking-object-modal-scroll");
         adminBookingObjectModalScrollTop = scrollEl ? scrollEl.scrollTop : adminBookingObjectModalScrollTop;
+        adminBookingSelectorScrollTop = 0;
         adminStore.setState({
           selectorOpenKey: key,
-          bookingSelectorScrollTop: 0,
         });
       },
-      onCloseSelector: () => adminStore.setState({ selectorOpenKey: null, bookingSelectorScrollTop: 0 }),
+      onCloseSelector: () => {
+        adminBookingSelectorScrollTop = 0;
+        adminStore.setState({ selectorOpenKey: null });
+      },
       onSave: async () => {
         const form = adminStore.getState().modalForm;
         const normalizedMaxBookings = normalizeRequiredMaxBookings(form.maxBookings);
@@ -960,7 +998,6 @@ if (routePath.startsWith("/admin/")) {
             modalValidationError: "",
             modalValidationErrors: {},
             selectorOpenKey: null,
-            bookingSelectorScrollTop: 0,
           });
         } catch (error) {
           const detail = String(error?.detail || "");
@@ -1199,8 +1236,10 @@ if (routePath.startsWith("/admin/")) {
       validationErrors: state.editUserValidationErrors || {},
       groupOptions: state.accessGroups || [],
       selectorOpen: state.userSelectorOpen,
-      selectorScrollTop: state.userSelectorScrollTop || 0,
-      onSelectorScroll: (value) => adminStore.setState({ userSelectorScrollTop: value }),
+      selectorScrollTop: adminUserSelectorScrollTop || 0,
+      onSelectorScroll: (value) => {
+        adminUserSelectorScrollTop = value || 0;
+      },
       addRfidOpen: state.userRfidModalOpen,
       onOpenAddRfid: () => adminStore.setState({ userRfidModalOpen: true }),
       onCloseAddRfid: () => adminStore.setState({ userRfidModalOpen: false, addRfidDraft: "" }),
@@ -1221,8 +1260,14 @@ if (routePath.startsWith("/admin/")) {
             addRfidDraft: "",
           };
         }),
-      onOpenSelector: () => adminStore.setState({ userSelectorOpen: true, userSelectorScrollTop: 0 }),
-      onCloseSelector: () => adminStore.setState({ userSelectorOpen: false, userSelectorScrollTop: 0 }),
+      onOpenSelector: () => {
+        adminUserSelectorScrollTop = 0;
+        adminStore.setState({ userSelectorOpen: true });
+      },
+      onCloseSelector: () => {
+        adminUserSelectorScrollTop = 0;
+        adminStore.setState({ userSelectorOpen: false });
+      },
       onChange: (field, value) =>
         adminStore.setState((prev) => ({
           editUserForm: { ...prev.editUserForm, [field]: value },
@@ -1232,7 +1277,6 @@ if (routePath.startsWith("/admin/")) {
         adminStore.setState({
           editUserOpen: false,
           userSelectorOpen: false,
-          userSelectorScrollTop: 0,
           userRfidModalOpen: false,
           userGroupModalOpen: false,
           addRfidDraft: "",
@@ -1278,7 +1322,6 @@ if (routePath.startsWith("/admin/")) {
           adminStore.setState({
             editUserOpen: false,
             userSelectorOpen: false,
-            userSelectorScrollTop: 0,
             userRfidModalOpen: false,
             userGroupModalOpen: false,
             addRfidDraft: "",
@@ -1652,14 +1695,14 @@ if (routePath.startsWith("/admin/")) {
     if (state.modalOpen && state.selectorOpenKey) {
       const list = app.querySelector(".booking-object-modal + .modal-overlay .selector-list");
       if (list) {
-        list.scrollTop = state.bookingSelectorScrollTop || 0;
+        list.scrollTop = adminBookingSelectorScrollTop || 0;
       }
     }
 
     if (state.editUserOpen && state.userSelectorOpen) {
       const list = app.querySelector(".edit-user-modal + .modal-overlay .selector-list");
       if (list) {
-        list.scrollTop = state.userSelectorScrollTop || 0;
+        list.scrollTop = adminUserSelectorScrollTop || 0;
       }
     }
 
@@ -3327,6 +3370,19 @@ const loadWeekAvailability = async (service, weekStart) => {
   };
 
   const renderSetup = () => {
+    const hasSetupModalOpen = Boolean(
+      setupState.bookingModalOpen ||
+        setupState.selectorOpenKey ||
+        setupState.groupModalOpen ||
+        setupState.editUserOpen ||
+        setupState.userSelectorOpen ||
+        setupState.userRfidModalOpen ||
+        setupState.userGroupModalOpen ||
+        setupState.confirmModal?.open ||
+        setupState.importOpen ||
+        setupState.adminSelectorOpen
+    );
+    setDocumentScrollLock(hasSetupModalOpen);
     const docScrollX = window.scrollX;
     const docScrollY = window.scrollY;
     const setupActiveElement =
@@ -3844,20 +3900,25 @@ const loadWeekAvailability = async (service, weekStart) => {
         });
       },
       selectorOpenKey: setupState.selectorOpenKey,
-      selectorScrollTop: setupState.bookingSelectorScrollTop || 0,
-      onSelectorScroll: (value) => setSetupState({ bookingSelectorScrollTop: value }),
+      selectorScrollTop: setupBookingSelectorScrollTop || 0,
+      onSelectorScroll: (value) => {
+        setupBookingSelectorScrollTop = value || 0;
+      },
       onBookingModalOverlayScroll: (value) => {
         setupBookingObjectModalScrollTop = value;
       },
       onOpenSelector: (key) => {
         const scrollEl = document.querySelector(".booking-object-modal-scroll");
         setupBookingObjectModalScrollTop = scrollEl ? scrollEl.scrollTop : setupBookingObjectModalScrollTop;
+        setupBookingSelectorScrollTop = 0;
         setSetupState({
           selectorOpenKey: key,
-          bookingSelectorScrollTop: 0,
         });
       },
-      onCloseSelector: () => setSetupState({ selectorOpenKey: null, bookingSelectorScrollTop: 0 }),
+      onCloseSelector: () => {
+        setupBookingSelectorScrollTop = 0;
+        setSetupState({ selectorOpenKey: null });
+      },
       bookingGroups: setupState.bookingGroups,
       onSelectGroup: (value) => {
         if (!value) {
@@ -3928,7 +3989,6 @@ const loadWeekAvailability = async (service, weekStart) => {
             bookingModalValidationError: "",
             bookingModalValidationErrors: {},
             selectorOpenKey: null,
-            bookingSelectorScrollTop: 0,
           });
         } catch (error) {
           const detail = String(error?.detail || "");
@@ -3971,8 +4031,10 @@ const loadWeekAvailability = async (service, weekStart) => {
       validationErrors: setupState.editUserValidationErrors || {},
       groupOptions: setupState.accessGroups || [],
       selectorOpen: setupState.userSelectorOpen,
-      selectorScrollTop: setupState.userSelectorScrollTop || 0,
-      onSelectorScroll: (value) => setSetupState({ userSelectorScrollTop: value }),
+      selectorScrollTop: setupUserSelectorScrollTop || 0,
+      onSelectorScroll: (value) => {
+        setupUserSelectorScrollTop = value || 0;
+      },
       addRfidOpen: setupState.userRfidModalOpen,
       onOpenAddRfid: () => setSetupState({ userRfidModalOpen: true }),
       onCloseAddRfid: () => setSetupState({ userRfidModalOpen: false, addRfidDraft: "" }),
@@ -3994,8 +4056,14 @@ const loadWeekAvailability = async (service, weekStart) => {
           addRfidDraft: "",
         });
       },
-      onOpenSelector: () => setSetupState({ userSelectorOpen: true, userSelectorScrollTop: 0 }),
-      onCloseSelector: () => setSetupState({ userSelectorOpen: false, userSelectorScrollTop: 0 }),
+      onOpenSelector: () => {
+        setupUserSelectorScrollTop = 0;
+        setSetupState({ userSelectorOpen: true });
+      },
+      onCloseSelector: () => {
+        setupUserSelectorScrollTop = 0;
+        setSetupState({ userSelectorOpen: false });
+      },
       onChange: (field, value) =>
         setSetupState({
           editUserForm: { ...setupState.editUserForm, [field]: value },
@@ -4005,7 +4073,6 @@ const loadWeekAvailability = async (service, weekStart) => {
         setSetupState({
           editUserOpen: false,
           userSelectorOpen: false,
-          userSelectorScrollTop: 0,
           userRfidModalOpen: false,
           userGroupModalOpen: false,
           addRfidDraft: "",
@@ -4047,7 +4114,6 @@ const loadWeekAvailability = async (service, weekStart) => {
           setSetupState({
             editUserOpen: false,
             userSelectorOpen: false,
-            userSelectorScrollTop: 0,
             userRfidModalOpen: false,
             userGroupModalOpen: false,
             addRfidDraft: "",
@@ -4368,14 +4434,14 @@ const loadWeekAvailability = async (service, weekStart) => {
     if (setupState.bookingModalOpen && setupState.selectorOpenKey) {
       const list = app.querySelector(".booking-object-modal + .modal-overlay .selector-list");
       if (list) {
-        list.scrollTop = setupState.bookingSelectorScrollTop || 0;
+        list.scrollTop = setupBookingSelectorScrollTop || 0;
       }
     }
 
     if (setupState.editUserOpen && setupState.userSelectorOpen) {
       const list = app.querySelector(".edit-user-modal + .modal-overlay .selector-list");
       if (list) {
-        list.scrollTop = setupState.userSelectorScrollTop || 0;
+        list.scrollTop = setupUserSelectorScrollTop || 0;
       }
     }
 
