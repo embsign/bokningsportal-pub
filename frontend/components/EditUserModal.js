@@ -310,7 +310,7 @@ export const EditUserModal = ({
         ].filter(Boolean),
       });
 
-  return createElement("div", {
+  const modal = createElement("div", {
     className: "modal-overlay",
     children: [
       createElement("div", {
@@ -501,9 +501,10 @@ export const EditUserModal = ({
           }),
         ],
       }),
-      renderSelectorModal(),
-      addRfidModal,
-      groupModal,
-    ].filter(Boolean),
+    ],
+  });
+
+  return createElement("div", {
+    children: [modal, renderSelectorModal(), addRfidModal, groupModal].filter(Boolean),
   });
 };
