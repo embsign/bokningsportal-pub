@@ -525,8 +525,6 @@ if (routePath.startsWith("/admin/")) {
     importRowCount: 0,
     groupsField: "-",
     groupSeparator: "|",
-    apartmentRegexOpen: false,
-    houseRegexOpen: false,
     csvGroups: [],
     adminSelectorOpen: false,
     adminSelectorScrollTop: 0,
@@ -1035,8 +1033,6 @@ if (routePath.startsWith("/admin/")) {
         rowCount: state.importRowCount || 17,
         encoding: state.importEncoding,
         encodingWarning: state.importEncodingWarning,
-        apartmentRegexOpen: state.apartmentRegexOpen,
-        houseRegexOpen: state.houseRegexOpen,
         houseRegex: state.houseRegex || "",
         apartmentRegex: state.apartmentRegex || "",
         groupSeparator: state.groupSeparator || "|",
@@ -1209,8 +1205,6 @@ if (routePath.startsWith("/admin/")) {
             case "importFocus":
             case "importFocusStart":
             case "importFocusEnd":
-            case "apartmentRegexOpen":
-            case "houseRegexOpen":
             case "identityField":
             case "rfidField":
             case "activeField":
@@ -1610,11 +1604,12 @@ if (routePath.startsWith("/admin/")) {
 
     if (
       modalFocusSnapshot &&
-      !state.groupModalOpen &&
+      !(state.groupModalOpen && modalFocusSnapshot.key !== "booking-group-name") &&
       !state.orderScreensModalOpen &&
       !state.ownTabletModalOpen &&
       !state.userSelectorOpen &&
-      !state.importOpen
+      !state.importOpen &&
+      !state.selectorOpenKey
     ) {
       const target = app.querySelector(`[data-focus-key="${modalFocusSnapshot.key}"]`);
       if (target) {
@@ -1631,7 +1626,7 @@ if (routePath.startsWith("/admin/")) {
 
     if (state.groupModalOpen) {
       const input = app.querySelector('[data-autofocus="group-name"]');
-      if (input) {
+      if (input && document.activeElement !== input) {
         input.focus();
         input.setSelectionRange?.(input.value.length, input.value.length);
       }
@@ -1686,7 +1681,7 @@ if (routePath.startsWith("/admin/")) {
     }
 
     if (state.importOpen && state.adminSelectorOpen) {
-      const list = app.querySelector(".import-modal .selector-list");
+      const list = app.querySelector(".import-root .selector-list");
       if (list) {
         list.scrollTop = state.adminSelectorScrollTop || 0;
       }
@@ -3053,8 +3048,6 @@ const loadWeekAvailability = async (service, weekStart) => {
     apartmentField: "",
     houseRegex: "",
     apartmentRegex: "",
-    apartmentRegexOpen: false,
-    houseRegexOpen: false,
     groupSeparator: "|",
     adminGroups: [],
     adminSelectorOpen: false,
@@ -3386,6 +3379,7 @@ const loadWeekAvailability = async (service, weekStart) => {
     const docScrollX = window.scrollX;
     const docScrollY = window.scrollY;
     const setupActiveElement =
+      setupState.bookingModalOpen ||
       setupState.editUserOpen ||
       setupState.userRfidModalOpen ||
       setupState.userGroupModalOpen ||
@@ -4170,8 +4164,6 @@ const loadWeekAvailability = async (service, weekStart) => {
         rowCount: setupState.importRowCount || 17,
         encoding: setupState.importEncoding,
         encodingWarning: setupState.importEncodingWarning,
-        apartmentRegexOpen: setupState.apartmentRegexOpen,
-        houseRegexOpen: setupState.houseRegexOpen,
         houseRegex: setupState.houseRegex || "",
         apartmentRegex: setupState.apartmentRegex || "",
         groupSeparator: setupState.groupSeparator || "|",
@@ -4343,8 +4335,6 @@ const loadWeekAvailability = async (service, weekStart) => {
             case "importFocus":
             case "importFocusStart":
             case "importFocusEnd":
-            case "apartmentRegexOpen":
-            case "houseRegexOpen":
             case "houseRegex":
             case "apartmentRegex":
             case "addNew":
@@ -4381,7 +4371,9 @@ const loadWeekAvailability = async (service, weekStart) => {
       !setupState.userRfidModalOpen &&
       !setupState.userGroupModalOpen &&
       !setupState.userSelectorOpen &&
-      !setupState.importOpen
+      !setupState.importOpen &&
+      !setupState.selectorOpenKey &&
+      !(setupState.groupModalOpen && setupEditUserFocusSnapshot.key !== "booking-group-name")
     ) {
       const target = app.querySelector(`[data-focus-key="${setupEditUserFocusSnapshot.key}"]`);
       if (target) {
@@ -4393,6 +4385,14 @@ const loadWeekAvailability = async (service, weekStart) => {
         ) {
           target.setSelectionRange(setupEditUserFocusSnapshot.start, setupEditUserFocusSnapshot.end);
         }
+      }
+    }
+
+    if (setupState.groupModalOpen) {
+      const input = app.querySelector('[data-autofocus="group-name"]');
+      if (input && document.activeElement !== input) {
+        input.focus();
+        input.setSelectionRange?.(input.value.length, input.value.length);
       }
     }
 
@@ -4425,7 +4425,7 @@ const loadWeekAvailability = async (service, weekStart) => {
     }
 
     if (setupState.importOpen && setupState.adminSelectorOpen) {
-      const list = app.querySelector(".import-modal .selector-list");
+      const list = app.querySelector(".import-root .selector-list");
       if (list) {
         list.scrollTop = setupState.adminSelectorScrollTop || 0;
       }

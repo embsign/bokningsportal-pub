@@ -157,44 +157,35 @@ export const ImportUsersModal = ({
                   }),
                 ],
               }),
-              createElement("button", {
-                className: "secondary-button admin-btn-advanced",
-                text: form.apartmentRegexOpen ? "Dölj avancerat" : "Avancerat regex-filter",
-                onClick: () => onChange("apartmentRegexOpen", !form.apartmentRegexOpen),
+              createElement("label", {
+                className: "form-field form-row-inline",
+                children: [
+                  createElement("div", { className: "form-label form-label-inline", text: "Regex-filter" }),
+                  createElement("input", {
+                    className: "input",
+                    attrs: { value: form.apartmentRegex || "", "data-autofocus": "apartmentRegex" },
+                    onInput: (event) => {
+                      onChange("apartmentRegex", event.target.value);
+                      onChange("importFocus", "apartmentRegex");
+                      onChange("importFocusStart", event.target.selectionStart);
+                      onChange("importFocusEnd", event.target.selectionEnd);
+                    },
+                  }),
+                ],
               }),
-              form.apartmentRegexOpen
-                ? createElement("label", {
-                    className: "form-field form-row-inline",
+              createElement("div", {
+                className: "import-effect",
+                children: form.effectApartment.map((row) =>
+                  createElement("div", {
+                    className: "import-effect-row",
                     children: [
-                      createElement("div", { className: "form-label form-label-inline", text: "Regex" }),
-                      createElement("input", {
-                        className: "input",
-                        attrs: { value: form.apartmentRegex || "", "data-autofocus": "apartmentRegex" },
-                        onInput: (event) => {
-                          onChange("apartmentRegex", event.target.value);
-                          onChange("importFocus", "apartmentRegex");
-                          onChange("importFocusStart", event.target.selectionStart);
-                          onChange("importFocusEnd", event.target.selectionEnd);
-                        },
-                      }),
+                      createElement("span", { text: row.original }),
+                      createElement("span", { text: "⇒" }),
+                      createElement("span", { text: row.value }),
                     ],
                   })
-                : null,
-              form.apartmentRegexOpen
-                ? createElement("div", {
-                    className: "import-effect",
-                    children: form.effectApartment.map((row) =>
-                      createElement("div", {
-                        className: "import-effect-row",
-                        children: [
-                          createElement("span", { text: row.original }),
-                          createElement("span", { text: "⇒" }),
-                          createElement("span", { text: row.value }),
-                        ],
-                      })
-                    ),
-                  })
-                : null,
+                ),
+              }),
             ],
           }),
         ],
@@ -235,17 +226,10 @@ export const ImportUsersModal = ({
                 ],
               }),
               form.houseField && form.houseField !== "-"
-                ? createElement("button", {
-                    className: "secondary-button admin-btn-advanced",
-                    text: form.houseRegexOpen ? "Dölj avancerat" : "Avancerat regex-filter",
-                    onClick: () => onChange("houseRegexOpen", !form.houseRegexOpen),
-                  })
-                : null,
-              form.houseField && form.houseField !== "-" && form.houseRegexOpen
                 ? createElement("label", {
                     className: "form-field form-row-inline",
                     children: [
-                      createElement("div", { className: "form-label form-label-inline", text: "Regex" }),
+                      createElement("div", { className: "form-label form-label-inline", text: "Regex-filter" }),
                       createElement("input", {
                         className: "input",
                         attrs: { value: form.houseRegex || "", "data-autofocus": "houseRegex" },
@@ -259,7 +243,7 @@ export const ImportUsersModal = ({
                     ],
                   })
                 : null,
-              form.houseField && form.houseField !== "-" && form.houseRegexOpen
+              form.houseField && form.houseField !== "-"
                 ? createElement("div", {
                     className: "import-effect",
                     children: form.effectHouse.map((row) =>
@@ -306,12 +290,12 @@ export const ImportUsersModal = ({
                         if (container) {
                           onChange("adminSelectorScrollTop", container.scrollTop || 0);
                         }
-                          const hasValue = form.adminGroups?.includes(group);
-                          const next = hasValue
-                            ? form.adminGroups.filter((item) => item !== group)
-                            : [...(form.adminGroups || []), group];
-                          onChange("adminGroups", next);
-                        },
+                        const hasValue = form.adminGroups?.includes(group);
+                        const next = hasValue
+                          ? form.adminGroups.filter((item) => item !== group)
+                          : [...(form.adminGroups || []), group];
+                        onChange("adminGroups", next);
+                      },
                       }),
                       createElement("span", { text: group }),
                     ],
@@ -591,26 +575,31 @@ export const ImportUsersModal = ({
   const steps = [step1, step2, step3, step4, step5, step6, step7, step8];
   const content = steps[step - 1] || step1;
 
+  const importCard = createElement("div", {
+    className: "modal card import-modal",
+    children: [
+      content,
+      isImporting
+        ? null
+        : footer({
+            onBack: step === 1 ? onClose : onPrev,
+            onNext,
+            onImport,
+            canNext,
+            showImport: step === 8,
+            backLabel: step === 1 ? "Avbryt" : "Tillbaka",
+          }),
+    ].filter(Boolean),
+  });
+
   return createElement("div", {
-    className: "modal-overlay",
+    className: "import-root",
     children: [
       createElement("div", {
-        className: "modal card import-modal",
-        children: [
-          content,
-          adminSelectorModal,
-          isImporting
-            ? null
-            : footer({
-                onBack: step === 1 ? onClose : onPrev,
-                onNext,
-                onImport,
-                canNext,
-                showImport: step === 8,
-                backLabel: step === 1 ? "Avbryt" : "Tillbaka",
-              }),
-        ],
+        className: "modal-overlay",
+        children: [importCard],
       }),
-    ],
+      adminSelectorModal,
+    ].filter(Boolean),
   });
 };
