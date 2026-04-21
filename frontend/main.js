@@ -5035,6 +5035,10 @@ const loadWeekAvailability = async (service, weekStart) => {
                           loading: "lazy",
                         },
                       }),
+                      createElement("p", {
+                        className: "landing-image-caption",
+                        text: "Illustrationsbilden är AI-genererad. Våra skärmar är 15.6\" och har WiFi, PoE (ethernet) och 4G. Samt MiFare och RFID/EM läsare.",
+                      }),
                     ],
                   }),
                 ],

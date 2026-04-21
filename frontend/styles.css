@@ -2167,6 +2167,14 @@ body {
   object-fit: contain;
 }
 
+.landing-image-caption {
+  margin: 0;
+  max-width: 280px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: #5a6f7a;
+}
+
 .landing-photo-placeholder-title {
   margin: 0;
   font-family: "Poppins", "Inter", system-ui, -apple-system, sans-serif;
