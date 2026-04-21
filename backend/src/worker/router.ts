@@ -1694,6 +1694,8 @@ const handlePublicConfig = async (_request: Request, env: Env) =>
   });
 
 const isSafeTenantIdParam = (value: string) => /^[a-zA-Z0-9_-]{1,128}$/.test(value);
+const isSafeAndroidVersion = (value: string) => /^[0-9A-Za-z._-]{1,64}$/.test(value);
+const buildTenantApkObjectKey = (version: string) => `bokningsportal-kiosk-${version}.apk`;
 
 const handleKioskWebContext = async (request: Request, env: Env, url: URL) => {
   const tenantId = String(url.searchParams.get("tenant_id") || "").trim();
@@ -1998,11 +2000,27 @@ const handleKioskScreenStatus = async (request: Request, env: Env) => {
   if ("error" in auth) return auth.error;
   const ts = getTimestampIso(env);
   await recordScreenLastSeen(env, String(auth.screen.id), ts);
+  const tenantTargetVersionRow = (await env.DB
+    .prepare(
+      `SELECT kiosk_target_android_version
+       FROM tenants
+       WHERE id = ?
+       LIMIT 1`
+    )
+    .bind(String(auth.screen.tenant_id))
+    .first()) as any;
+  const targetAndroidVersion = String(tenantTargetVersionRow?.kiosk_target_android_version || "").trim();
+  const androidDownloadPath = targetAndroidVersion
+    ? `/api/kiosk/screen/apk?version=${encodeURIComponent(targetAndroidVersion)}`
+    : "";
   const kioskTenant: TenantEtagSource = {
     id: String(auth.screen.tenant_id),
     last_changed_at: String(auth.screen.tenant_last_changed_at ?? ""),
   };
-  const instructions = buildKioskScreenInstructions(env);
+  const instructions = buildKioskScreenInstructions(env, {
+    targetAndroidVersion,
+    androidDownloadPath,
+  });
   return withTenantConditionalJson(request, kioskTenant, {
     connected: true,
     screen: {
@@ -2013,6 +2031,42 @@ const handleKioskScreenStatus = async (request: Request, env: Env) => {
     },
     ...(instructions ? { instructions } : {}),
   });
+};
+
+const handleKioskScreenApkDownload = async (request: Request, env: Env, url: URL) => {
+  const auth = await requireScreenAuth(request, env);
+  if ("error" in auth) return auth.error;
+  const requestedVersion = String(url.searchParams.get("version") || "").trim();
+  if (!requestedVersion || !isSafeAndroidVersion(requestedVersion)) {
+    return errorResponse(400, "invalid_version");
+  }
+  const tenantRow = (await env.DB
+    .prepare(
+      `SELECT kiosk_target_android_version
+       FROM tenants
+       WHERE id = ?
+       LIMIT 1`
+    )
+    .bind(String(auth.screen.tenant_id))
+    .first()) as any;
+  const targetVersion = String(tenantRow?.kiosk_target_android_version || "").trim();
+  if (!targetVersion || targetVersion !== requestedVersion) {
+    return errorResponse(404, "version_not_enabled");
+  }
+  const bucket = env.ANDROID_APK_R2;
+  if (!bucket) {
+    return errorResponse(503, "apk_storage_unavailable");
+  }
+  const objectKey = buildTenantApkObjectKey(targetVersion);
+  const apkObject = await bucket.get(objectKey);
+  if (!apkObject?.body) {
+    return errorResponse(404, "apk_not_found");
+  }
+  const headers = new Headers();
+  headers.set("content-type", "application/vnd.android.package-archive");
+  headers.set("cache-control", "no-store");
+  headers.set("content-disposition", `attachment; filename="bokningsportal-kiosk-${targetVersion}.apk"`);
+  return new Response(apkObject.body, { status: 200, headers });
 };
 
 const handleKioskRfidLogin = async (request: Request, env: Env) => {
@@ -3350,6 +3404,7 @@ export const router = async (request: Request, env: Env) => {
   if (request.method === "POST" && path === "/api/kiosk/pairing/announce") return handleKioskPairingAnnounce(request, env);
   if (request.method === "POST" && path === "/api/kiosk/pairing/claim") return handleKioskPairingClaim(request, env);
   if (request.method === "GET" && path === "/api/kiosk/screen/status") return handleKioskScreenStatus(request, env);
+  if (request.method === "GET" && path === "/api/kiosk/screen/apk") return handleKioskScreenApkDownload(request, env, url);
   if (request.method === "POST" && path === "/api/kiosk/rfid-login") return handleKioskRfidLogin(request, env);
 
   if (request.method === "GET" && path === "/api/admin/users/login-qr-export") return handleAdminUsersLoginQrExport(request, env);

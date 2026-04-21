@@ -20,3 +20,8 @@ id = "00000000-0000-0000-0000-000000000002"
 binding = "RFID_ABUSE_KV"
 id = "00000000-0000-0000-0000-000000000003"
 preview_id = "00000000-0000-0000-0000-000000000003"
+
+# Privat R2-bucket med Android-APK:er, nycklar: bokningsportal-kiosk-<version>.apk
+[[r2_buckets]]
+binding = "ANDROID_APK_R2"
+bucket_name = "bokningsportalandroid"

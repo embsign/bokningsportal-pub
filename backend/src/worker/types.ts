@@ -24,6 +24,17 @@ export type KVNamespace = {
   delete(key: string): Promise<void>;
 };
 
+export type R2ObjectBody = {
+  body: ReadableStream;
+  httpEtag?: string;
+  size?: number;
+  uploaded?: Date;
+};
+
+export type R2Bucket = {
+  get(key: string): Promise<R2ObjectBody | null>;
+};
+
 export interface Env {
   DB: D1Database;
   KIOSK_EDGE_KV?: KVNamespace;
@@ -44,4 +55,6 @@ export interface Env {
   KIOSK_UPDATE_MESSAGE_SV?: string;
   /** Rate limit / global attack-läge för RFID-auth; eget KV-namespace. */
   RFID_ABUSE_KV?: KVNamespace;
+  /** Privat R2-bucket för signerade Android APK-releaser. */
+  ANDROID_APK_R2?: R2Bucket;
 }
