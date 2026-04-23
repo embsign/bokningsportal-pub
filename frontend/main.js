@@ -875,16 +875,17 @@ if (routePath.startsWith("/admin/")) {
     setDocumentScrollLock(hasAdminModalOpen);
     const docScrollX = window.scrollX;
     const docScrollY = window.scrollY;
-    const activeElement =
+    const activeElementCandidate = document.activeElement;
+    const shouldTrackFocus =
       state.modalOpen ||
       state.editUserOpen ||
       state.userRfidModalOpen ||
       state.userGroupModalOpen ||
       state.pairScreenModalOpen ||
       state.editScreenModalOpen ||
-      state.ownTabletModalOpen
-        ? document.activeElement
-        : null;
+      state.ownTabletModalOpen ||
+      Boolean(activeElementCandidate?.getAttribute?.("data-focus-key"));
+    const activeElement = shouldTrackFocus ? activeElementCandidate : null;
     const modalFocusSnapshot =
       activeElement && activeElement.getAttribute?.("data-focus-key")
         ? {

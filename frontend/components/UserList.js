@@ -37,7 +37,11 @@ export const UserList = ({
         children: [
           createElement("input", {
             className: "input",
-            attrs: { value: query || "", placeholder: "Sök på lägenhet, hus eller grupp" },
+            attrs: {
+              value: query || "",
+              placeholder: "Sök på lägenhet, hus eller grupp",
+              "data-focus-key": "admin-user-search",
+            },
             onInput: (event) => onQueryChange(event.target.value),
           }),
         ],
