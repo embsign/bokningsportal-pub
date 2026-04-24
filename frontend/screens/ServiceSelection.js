@@ -114,8 +114,16 @@ export const ServiceSelection = ({
             children: [
               createElement("div", {
                 className: "qr-description",
-                text:
-                  "För att boka tider med mobilen behöver du en personlig länk för att logga in. Om du inte har en kan du klicka på knappen intill för att generera en QR kod. Denna QR kod ger dig en personlig bokningslänk - dela den bara med andra i ditt hushåll som skall kunna boka. Du kan visa din personliga inloggningslänk genom att klicka på knappen intill.<br><br>Om du är nyinflyttad är det lämpligt att generera en ny QR-kod så att tidigare boende inte kan boka i ditt namn.",
+                children: [
+                  createElement("p", {
+                    text:
+                      "För att boka tider med mobilen behöver du en personlig länk för att logga in. Om du inte har en kan du klicka på knappen intill för att generera en QR kod. Denna QR kod ger dig en personlig bokningslänk - dela den bara med andra i ditt hushåll som skall kunna boka. Du kan visa din personliga inloggningslänk genom att klicka på knappen intill.",
+                  }),
+                  createElement("p", {
+                    text:
+                      "Om du är nyinflyttad är det lämpligt att generera en ny QR-kod så att tidigare boende inte kan boka i ditt namn.",
+                  }),
+                ],
               }),
               createElement("div", {
                 className: "qr-actions",
