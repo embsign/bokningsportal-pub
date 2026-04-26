@@ -1955,7 +1955,7 @@ const handleAdminPairBookingScreen = async (request: Request, env: Env) => {
     .bind(screenId, auth.tenant.id, name, pairingCode, screenToken)
     .run();
 
-  await recordScreenLastSeen(env, screenId, getTimestampIso(env));
+  await recordScreenLastSeen(env, screenId, getTimestampIso(env), new URL(request.url).origin);
 
   await env.DB
     .prepare(
@@ -2055,7 +2055,7 @@ const handleKioskPairingClaim = async (request: Request, env: Env) => {
   }
 
   const ts = getTimestampIso(env);
-  await recordScreenLastSeen(env, String(row.id), ts);
+  await recordScreenLastSeen(env, String(row.id), ts, new URL(request.url).origin);
 
   return json({
     paired: true,
@@ -2073,7 +2073,7 @@ const handleKioskScreenStatus = async (request: Request, env: Env) => {
   const auth = await requireScreenAuth(request, env, "poll");
   if ("error" in auth) return auth.error;
   const ts = getTimestampIso(env);
-  await recordScreenLastSeen(env, String(auth.screen.id), ts);
+  await recordScreenLastSeen(env, String(auth.screen.id), ts, new URL(request.url).origin);
   const tenantTargetVersionRow = (await env.DB
     .prepare(
       `SELECT kiosk_target_android_version
@@ -2206,7 +2206,7 @@ const handleKioskRfidLogin = async (request: Request, env: Env) => {
   }
 
   const ts = getTimestampIso(env);
-  await recordScreenLastSeen(env, String(auth.screen.id), ts);
+  await recordScreenLastSeen(env, String(auth.screen.id), ts, new URL(request.url).origin);
 
   await recordRfidAuthSuccess(env, request);
 
