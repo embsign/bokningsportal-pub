@@ -432,14 +432,15 @@ const readCsvFile = async (file) => {
 if (routePath.startsWith("/admin/")) {
   void (async () => {
     const [
-    { AdminDashboard },
-    { BookingObjectModal },
-    { ImportUsersModal },
-    { EditUserModal },
-    { ReportModal },
-    adminTablesModule,
-    adminApiModule,
-    { downloadApartmentLoginQrPdf },
+      { AdminDashboard },
+      { BookingObjectModal },
+      { ImportUsersModal },
+      { EditUserModal },
+      { ReportModal },
+      { BookingObjectsTable },
+      { UserList },
+      adminApiModule,
+      { downloadApartmentLoginQrPdf },
     ] = await Promise.all([
       import("./screens/AdminDashboard.js"),
       import("./components/BookingObjectModal.js"),
@@ -447,10 +448,10 @@ if (routePath.startsWith("/admin/")) {
       import("./components/EditUserModal.js"),
       import("./components/ReportModal.js"),
       import("./components/BookingObjectsTable.js"),
+      import("./components/UserList.js"),
       import("./api/admin.js"),
       import("./utils/apartmentQrPdf.js"),
     ]);
-    const { BookingObjectsTable, UserList } = adminTablesModule;
     const {
     getBookingGroups,
     getBookingObjects,
@@ -3370,16 +3371,24 @@ const loadWeekAvailability = async (service, weekStart) => {
   render();
 } else if (routePath.startsWith("/setup/")) {
   void (async () => {
-    const [{ BookingObjectModal }, { ImportUsersModal }, { EditUserModal }, adminTablesModule, adminApiModule, { downloadApartmentLoginQrPdf }] =
+    const [
+      { BookingObjectModal },
+      { ImportUsersModal },
+      { EditUserModal },
+      { BookingObjectsTable },
+      { UserList },
+      adminApiModule,
+      { downloadApartmentLoginQrPdf },
+    ] =
       await Promise.all([
         import("./components/BookingObjectModal.js"),
         import("./components/ImportUsersModal.js"),
         import("./components/EditUserModal.js"),
         import("./components/BookingObjectsTable.js"),
+        import("./components/UserList.js"),
         import("./api/admin.js"),
         import("./utils/apartmentQrPdf.js"),
       ]);
-    const { BookingObjectsTable, UserList } = adminTablesModule;
     const {
     getBookingGroups,
     getBookingObjects,
